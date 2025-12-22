@@ -1,6 +1,9 @@
-# Sistema de Gestión de Taller RL
+# Sistema de Gestión de Taller R&L
 
-Sistema web integral para la administración y control de operaciones en talleres de producción, desarrollado con tecnologías modernas y arquitectura escalable.
+El taller R&L se dedica a la producción de prendas por encargo. Actualmente, el registro de sus operaciones se realiza de forma manual, lo que ocasiona errores en la información, demoras en los procesos y cálculos imprecisos en los pagos.
+
+Para atender esta problemática, se propone el desarrollo de un sistema web integral que permita la administración y el control eficiente de las operaciones del taller. La solución estará construida con tecnologías modernas y una arquitectura escalable, orientada a optimizar los procesos productivos, mejorar la trazabilidad de la información y garantizar una gestión más precisa y oportuna.
+
 
 ## Descripción General
 
