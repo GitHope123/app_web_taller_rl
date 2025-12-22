@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 469 156" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-1053.436417,-1126.456176)">
+        <g transform="matrix(0.37716,0,0,0.220335,617.130189,980.598649)">
+            <rect x="1156.82" y="661.982" width="1243.233" height="707.585" style="fill:none;"/>
+        </g>
+        <g transform="matrix(2.14399,0,0,2.14399,-684.674427,-1543.314641)">
+            <g transform="matrix(50,0,0,50,970.520481,1286.888025)">
+            </g>
+            <text x="864.832px" y="1286.888px" style="font-family:'BodoniMT', 'Bodoni MT', serif;font-size:50px;fill:rgb(15,23,42);fill-opacity:0.91;">R&amp;L</text>
+        </g>
+        <g transform="matrix(0.314797,0,0,0.314797,1025.564113,728.369442)">
+            <g transform="matrix(176.546658,0,0,176.546658,1037.254292,1710.816691)">
+            </g>
+            <text x="607.525px" y="1710.817px" style="font-family:'BodoniMT', 'Bodoni MT', serif;font-size:176.547px;fill:rgb(182,115,0);">T<tspan x="713.47px 800.02px " y="1710.817px 1710.817px ">al</tspan>ler</text>
+        </g>
+    </g>
+</svg>
