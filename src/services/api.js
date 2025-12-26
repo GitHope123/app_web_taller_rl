@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabaseClient'
+import { supabase } from '../lib/supabaseClient'
 
 /**
  * Servicio centralizado de API para Supabase
@@ -223,48 +222,125 @@ export const usuariosAPI = {
 
     create: async (usuarioData) => {
         try {
-            // 1. Crear usuario en Supabase Auth
-            // Usamos un cliente temporal para no cerrar la sesión del admin actual
-            const tempSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-                auth: { persistSession: false }
-            })
-
             const email = usuarioData.email || `${usuarioData.dni}@taller.com`
             const password = usuarioData.password
 
-            if (!password) throw new Error('Password is required for user creation')
+            if (!password) {
+                throw new Error('La contraseña es requerida para crear un usuario')
+            }
 
-            const { data: authData, error: authError } = await tempSupabase.auth.signUp({
+            // 1. Primero verificar si el usuario ya existe en la tabla pública
+            const { data: existingUser } = await supabase
+                .from('usuario')
+                .select('dni, nombre, apellidos')
+                .eq('dni', usuarioData.dni)
+                .maybeSingle() // Use maybeSingle to avoid error if not found
+
+            if (existingUser) {
+                throw new Error(`El usuario con DNI ${usuarioData.dni} ya existe en el sistema`)
+            }
+
+            // 2. Crear usuario en Supabase Auth
+            // Nota: Usamos el cliente principal pero con signUp que no afecta la sesión actual
+            const { data: authData, error: authError } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
                     data: {
-                        rol: usuarioData.rol
-                    }
+                        rol: usuarioData.rol,
+                        nombre: usuarioData.nombre,
+                        apellidos: usuarioData.apellidos
+                    },
+                    emailRedirectTo: undefined // Evitar confirmación de email
                 }
             })
 
-            if (authError) throw authError
-            if (!authData.user) throw new Error('No se pudo crear el usuario en Auth')
+            // Manejar errores de Auth
+            if (authError) {
+                console.error('Auth error:', authError)
+
+                // Error 409 o usuario ya registrado
+                if (authError.status === 409 ||
+                    authError.message?.includes('already registered') ||
+                    authError.message?.includes('User already registered')) {
+                    throw new Error(`El email ${email} ya está registrado en el sistema de autenticación`)
+                }
+
+                // Otros errores de Auth
+                throw new Error(`Error de autenticación: ${authError.message}`)
+            }
+
+            // Verificar que se creó el usuario en Auth
+            if (!authData?.user?.id) {
+                throw new Error('No se pudo crear el usuario en el sistema de autenticación')
+            }
 
             const userId = authData.user.id
 
-            // 2. Crear usuario en tabla pública 'usuario'
-            // Filtramos datos para tabla pública
+            // 3. Pequeña espera para asegurar que el usuario de Auth esté completamente creado
+            // Esto evita problemas de foreign key constraint
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            // 4. Crear usuario en tabla pública 'usuario'
             const publicUserData = {
                 id_usuario: userId,
                 nombre: usuarioData.nombre,
                 apellidos: usuarioData.apellidos,
                 dni: usuarioData.dni,
                 celular: usuarioData.celular,
-                // email: usuarioData.email, // No guardamos email en tabla pública
                 rol: usuarioData.rol
             }
 
-            return await createData('usuario', publicUserData)
+            // Intentar insertar con reintentos en caso de timing issues
+            let result = null
+            let retries = 3
+
+            while (retries > 0) {
+                result = await createData('usuario', publicUserData)
+
+                if (result.success) {
+                    break
+                }
+
+                // Si es error de foreign key, esperar un poco más
+                if (result.error?.includes('foreign key') || result.error?.includes('usuario_auth_fk')) {
+                    retries--
+                    if (retries > 0) {
+                        console.log(`Foreign key error, retrying... (${retries} attempts left)`)
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+                        continue
+                    }
+                }
+
+                // Si es otro tipo de error, salir del loop
+                break
+            }
+
+            // Si falla la creación en la tabla pública
+            if (!result.success) {
+                console.error('Error creating public user data:', result.error)
+
+                // Verificar si es error de foreign key (el usuario de Auth no existe)
+                if (result.error?.includes('foreign key') || result.error?.includes('usuario_auth_fk')) {
+                    throw new Error('Error de sincronización: El usuario de autenticación no se creó correctamente. Por favor, contacte al administrador del sistema.')
+                }
+
+                // Verificar si es error de DNI duplicado
+                if (result.error?.includes('duplicate') || result.error?.includes('unique')) {
+                    throw new Error(`El DNI ${usuarioData.dni} ya está registrado en el sistema`)
+                }
+
+                throw new Error(`Error al guardar datos del usuario: ${result.error}`)
+            }
+
+            return result
         } catch (error) {
-            console.error('Error creating user:', error)
-            return { success: false, data: null, error: error.message }
+            console.error('Error creating usuario:', error)
+            return {
+                success: false,
+                data: null,
+                error: error.message || 'Error desconocido al crear usuario'
+            }
         }
     },
 

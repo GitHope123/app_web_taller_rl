@@ -317,7 +317,7 @@ function Dashboard() {
         <Grid item xs={12} lg={8}>
           <Paper sx={{
             p: { xs: 2, sm: 2.5, md: 3 },
-            height: { xs: '300px', sm: '350px', md: '400px' },
+            height: '400px',
             border: `1px solid ${theme.palette.divider}`,
             display: 'flex',
             flexDirection: 'column'
@@ -378,7 +378,7 @@ function Dashboard() {
         <Grid item xs={12} lg={4}>
           <Paper sx={{
             p: { xs: 2, sm: 2.5, md: 3 },
-            height: { xs: '300px', sm: '350px', md: '400px' },
+            height: '400px',
             border: `1px solid ${theme.palette.divider}`,
             display: 'flex',
             flexDirection: 'column'
@@ -437,7 +437,7 @@ function Dashboard() {
         <Grid item xs={12}>
           <Paper sx={{
             p: { xs: 2, sm: 2.5, md: 3 },
-            height: { xs: '300px', sm: '325px', md: '350px' },
+            height: '350px',
             border: `1px solid ${theme.palette.divider}`,
             display: 'flex',
             flexDirection: 'column'
