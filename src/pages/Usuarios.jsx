@@ -232,7 +232,10 @@ function Usuarios() {
                 rol: formData.rol
             }
             if (formData.dni) updateData.dni = formData.dni
-            // Password update via table is not supported in this view logic
+            if (formData.email) updateData.email = formData.email
+            if (formData.password && formData.password.trim() !== '') {
+                updateData.password = formData.password
+            }
 
             updateMutation.mutate({ id: editingId, data: updateData })
         } else {

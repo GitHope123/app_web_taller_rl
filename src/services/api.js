@@ -344,7 +344,41 @@ export const usuariosAPI = {
         }
     },
 
-    update: (id, usuarioData) => updateData('usuario', 'id_usuario', id, usuarioData),
+    update: async (id, usuarioData) => {
+        try {
+            const email = usuarioData.email || (usuarioData.dni ? `${usuarioData.dni}@taller.com` : undefined)
+
+            // Parametros para la funcion RPC
+            const rpcParams = {
+                target_id: id,
+                new_email: email, // Si es undefined, la funcion SQL lo ignora (COALESCE o IF NOT NULL)
+                new_password: usuarioData.password || null,
+                new_nombre: usuarioData.nombre,
+                new_apellidos: usuarioData.apellidos,
+                new_dni: usuarioData.dni,
+                new_celular: usuarioData.celular,
+                new_rol: usuarioData.rol
+            }
+
+            // Llamada RPC para actualizar todo atómicamente
+            // Nota: Si solo se actualizan campos publicos, la funcion tambien funciona.
+            const { data, error } = await supabase.rpc('actualizar_usuario_completo', rpcParams)
+
+            if (error) throw error
+            if (data && !data.success) throw new Error(data.data?.error || data.error || 'Error al actualizar usuario')
+
+            cache.clear('usuario')
+            return { success: true, data: data, error: null }
+
+        } catch (err) {
+            console.error('Error updating user complete:', err)
+            // Fallback si falla el RPC (ej. no admin), intentamos update normal a tabla publica
+            if (err.message && err.message.includes('Acceso denegado')) {
+                return updateData('usuario', 'id_usuario', id, usuarioData)
+            }
+            return { success: false, data: null, error: err.message }
+        }
+    },
 
     delete: async (id) => {
         try {
