@@ -346,7 +346,30 @@ export const usuariosAPI = {
 
     update: (id, usuarioData) => updateData('usuario', 'id_usuario', id, usuarioData),
 
-    delete: (id) => deleteData('usuario', 'id_usuario', id),
+    delete: async (id) => {
+        try {
+            // Intentar eliminar usando la función segura (RPC) que elimina de Auth y Public
+            const { data, error } = await supabase.rpc('eliminar_usuario_completo', { target_user_id: id })
+
+            if (error) throw error
+
+            // La función RPC devuelve un objeto con success/error
+            if (data && !data.success) {
+                throw new Error(data.error)
+            }
+
+            // Limpiar cache relacionado
+            cache.clear('usuario')
+
+            return { success: true, error: null }
+        } catch (err) {
+            console.error('Error deleting user completely:', err)
+            // Si la función RPC no existe o falla por permisos, intentar eliminación simple
+            // pero advertir que puede quedar basura en Auth
+            console.warn('Falling back to simple table delete (Auth user might remain)')
+            return deleteData('usuario', 'id_usuario', id)
+        }
+    },
 
     setPassword: async (userId, newPassword) => {
         // Nota: Actualizar contraseña de otro usuario requiere privilegios de admin/service_role
